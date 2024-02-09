@@ -26,8 +26,8 @@ class AudioRecorder(Gtk.Window):
         self.delete_button.connect("clicked", self.on_delete_clicked)
         vbox.pack_start(self.delete_button, True, True, 0)
 
-        self.play_button = Gtk.Button(label="Ouvir Gravação")
-        self.play_button.connect("clicked", self.on_play_clicked)
+        self.play_button = Gtk.ToggleButton(label="Ouvir Gravação")
+        self.play_button.connect("toggled", self.on_play_clicked)
         vbox.pack_start(self.play_button, True, True, 0)
 
         self.save_button = Gtk.Button(label="Salvar Áudio")
@@ -67,7 +67,7 @@ class AudioRecorder(Gtk.Window):
         self.recording_start_time = time.time()
         self.record_process = subprocess.Popen(['arecord', '-f', 'cd', self.filename],
                                                stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-        self.status_label.set_text(f"Gravando áudio: {os.path.basename(self.filename)}")
+        self.status_label.set_text(f"Gravando áudio...")
         GLib.timeout_add_seconds(1, self.update_recording_time)
 
     def update_recording_time(self):
@@ -81,16 +81,16 @@ class AudioRecorder(Gtk.Window):
         if self.is_recording:
             self.record_process.terminate()
             self.is_recording = False
-            self.status_label.set_text(f"Gravação concluída: {os.path.basename(self.filename)}")
+            self.status_label.set_text(f"Gravação concluída!")
             self.progress_time_label.set_text("00:00")
 
     def on_delete_clicked(self, button):
         if os.path.exists(self.filename):
             os.remove(self.filename)
-            self.status_label.set_text(f"Áudio {os.path.basename(self.filename)} excluído com sucesso.")
+            self.status_label.set_text(f"Áudio excluído com sucesso.")
             self.progress_time_label.set_text("00:00")
         else:
-            self.status_label.set_text("Não existe um áudio para ser excluído.")
+            self.status_label.set_text("Nenhum áudio para excluir!")
         self.progress_bar.set_fraction(0)
 
     def on_play_clicked(self, button):
@@ -98,10 +98,16 @@ class AudioRecorder(Gtk.Window):
             self.playback_process.terminate()
         if os.path.exists(self.filename):
             self.playback_process = subprocess.Popen(['aplay', self.filename])
-            self.status_label.set_text(f"Ouvindo áudio: {os.path.basename(self.filename)}")
+            self.status_label.set_text(f"Ouvindo áudio...")
+            button.set_label("Reproduzindo...")
             if self.update_progress_id is not None:
                 GLib.source_remove(self.update_progress_id)
             self.update_progress_id = GLib.timeout_add(100, self.update_playback_progress)
+            button.set_active(False)
+        else:
+            self.status_label.set_text(f"Nenhum áudio para ouvir!")
+            button.set_label("Ouvir Gravação")
+            button.set_active(False)
 
     def update_playback_progress(self):
         # Esta função precisa ser ajustada para monitorar o progresso real da reprodução se possível.
@@ -114,21 +120,12 @@ class AudioRecorder(Gtk.Window):
             return False
 
     def on_save_clicked(self, button):
-        dialog = Gtk.FileChooserDialog(title="Salvar Áudio Como", parent=self,
-                                       action=Gtk.FileChooserAction.SAVE)
-        dialog.add_buttons(Gtk.STOCK_CANCEL, Gtk.ResponseType.CANCEL,
-                           Gtk.STOCK_SAVE, Gtk.ResponseType.OK)
-
-        dialog.set_do_overwrite_confirmation(True)
-        dialog.set_current_name("audio_gravado.wav")
-
-        response = dialog.run()
-        if response == Gtk.ResponseType.OK:
-            save_filename = dialog.get_filename()
+        if os.path.exists(self.filename):
+            save_filename = f"audio_{int(time.time())}.wav"
             os.rename(self.filename, save_filename)
-            self.filename = save_filename
             self.status_label.set_text(f"Áudio salvo como: {os.path.basename(save_filename)}")
-        dialog.destroy()
+        else:
+            self.status_label.set_text(f"Nenhum áudio para salvar!")
 
 if __name__ == "__main__":
     win = AudioRecorder()

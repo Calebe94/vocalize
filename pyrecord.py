@@ -1,8 +1,7 @@
-#!/usr/bin/env python3
 import gi
 import subprocess
 import os
-import threading
+import time
 
 gi.require_version('Gtk', '3.0')
 from gi.repository import Gtk, GLib
@@ -11,10 +10,13 @@ class AudioRecorder(Gtk.Window):
     def __init__(self):
         super().__init__(title="Gravador de Áudio")
         self.set_border_width(10)
-        self.set_default_size(300, 150)
+        self.set_default_size(400, 200)
 
         vbox = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=6)
         self.add(vbox)
+
+        self.status_label = Gtk.Label(label="Pronto")
+        vbox.pack_start(self.status_label, True, True, 0)
 
         self.record_button = Gtk.ToggleButton(label="Iniciar Gravação")
         self.record_button.connect("toggled", self.on_record_toggle)
@@ -28,7 +30,8 @@ class AudioRecorder(Gtk.Window):
         self.play_button.connect("clicked", self.on_play_clicked)
         vbox.pack_start(self.play_button, True, True, 0)
 
-        self.save_button = Gtk.Button(label="Salvar Gravação")
+        self.save_button = Gtk.Button(label="Salvar Áudio")
+        self.save_button.connect("clicked", self.on_save_clicked)
         vbox.pack_start(self.save_button, True, True, 0)
 
         self.progress_bar = Gtk.ProgressBar()
@@ -37,6 +40,8 @@ class AudioRecorder(Gtk.Window):
         self.filename = "temp_audio.wav"
         self.is_recording = False
         self.playback_process = None
+        self.recording_start_time = None
+        self.update_progress_id = None
 
     def on_record_toggle(self, button):
         if button.get_active():
@@ -48,39 +53,67 @@ class AudioRecorder(Gtk.Window):
 
     def start_recording(self):
         self.is_recording = True
+        self.recording_start_time = time.time()
         self.record_process = subprocess.Popen(['arecord', '-f', 'cd', self.filename],
                                                stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        self.status_label.set_text(f"Gravando áudio: {os.path.basename(self.filename)}")
+        GLib.timeout_add(1000, self.update_recording_time)
+
+    def update_recording_time(self):
+        if self.is_recording:
+            elapsed_time = int(time.time() - self.recording_start_time)
+            self.status_label.set_text(f"Gravando áudio: {os.path.basename(self.filename)} [{elapsed_time} segundos]")
+            return True
+        return False
 
     def stop_recording(self):
         if self.is_recording:
             self.record_process.terminate()
             self.is_recording = False
+            self.status_label.set_text(f"Gravação concluída: {os.path.basename(self.filename)}")
 
     def on_delete_clicked(self, button):
         if os.path.exists(self.filename):
             os.remove(self.filename)
+            self.status_label.set_text(f"Áudio {os.path.basename(self.filename)} excluído com sucesso.")
+        else:
+            self.status_label.set_text("Não existe um áudio para ser excluído.")
         self.progress_bar.set_fraction(0)
 
     def on_play_clicked(self, button):
         if self.playback_process and self.playback_process.poll() is None:
-            # Se já está tocando, para a reprodução atual
             self.playback_process.terminate()
         if os.path.exists(self.filename):
             self.playback_process = subprocess.Popen(['aplay', self.filename])
-            # Atualiza a barra de progresso para indicar reprodução (simples indicação, sem controle de tempo real)
-            GLib.timeout_add(100, self.monitor_playback)
+            self.status_label.set_text(f"Ouvindo áudio: {os.path.basename(self.filename)}")
+            if self.update_progress_id is not None:
+                GLib.source_remove(self.update_progress_id)
+            self.update_progress_id = GLib.timeout_add(100, self.update_playback_progress)
 
-    def monitor_playback(self):
+    def update_playback_progress(self):
         if self.playback_process.poll() is None:
             self.progress_bar.pulse()
-            return True  # Continua chamando a função para pulsar a barra de progresso
+            return True
         else:
             self.progress_bar.set_fraction(0)
-            return False  # Para de chamar a função quando a reprodução terminar
+            return False
 
     def on_save_clicked(self, button):
-        # Implementação depende dos requisitos específicos (e.g., escolher novo local/nome para salvar)
-        pass
+        dialog = Gtk.FileChooserDialog(title="Salvar Áudio Como", parent=self,
+                                       action=Gtk.FileChooserAction.SAVE)
+        dialog.add_buttons(Gtk.STOCK_CANCEL, Gtk.ResponseType.CANCEL,
+                           Gtk.STOCK_SAVE, Gtk.ResponseType.OK)
+
+        dialog.set_do_overwrite_confirmation(True)
+        dialog.set_current_name("audio_gravado.wav")
+
+        response = dialog.run()
+        if response == Gtk.ResponseType.OK:
+            save_filename = dialog.get_filename()
+            os.rename(self.filename, save_filename)
+            self.filename = save_filename
+            self.status_label.set_text(f"Áudio salvo como: {os.path.basename(save_filename)}")
+        dialog.destroy()
 
 if __name__ == "__main__":
     win = AudioRecorder()

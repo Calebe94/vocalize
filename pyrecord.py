@@ -10,17 +10,13 @@ class AudioRecorder(Gtk.Window):
     def __init__(self):
         super().__init__(title="Gravador de Áudio")
         self.set_border_width(10)
-        self.set_default_size(400, 250)  # Ajustado para acomodar o novo label de tempo
+        self.set_default_size(400, 250)
 
         vbox = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=6)
         self.add(vbox)
 
         self.status_label = Gtk.Label(label="Pronto")
         vbox.pack_start(self.status_label, True, True, 0)
-
-        # Label para exibir o tempo de progresso
-        self.progress_time_label = Gtk.Label(label="00:00")
-        vbox.pack_start(self.progress_time_label, True, True, 0)
 
         self.record_button = Gtk.ToggleButton(label="Iniciar Gravação")
         self.record_button.connect("toggled", self.on_record_toggle)
@@ -38,8 +34,15 @@ class AudioRecorder(Gtk.Window):
         self.save_button.connect("clicked", self.on_save_clicked)
         vbox.pack_start(self.save_button, True, True, 0)
 
+        # Split horizontal para progress bar e tempo de progresso
+        hbox = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=6)
+        vbox.pack_start(hbox, True, True, 0)
+
         self.progress_bar = Gtk.ProgressBar()
-        vbox.pack_start(self.progress_bar, True, True, 0)
+        hbox.pack_start(self.progress_bar, True, True, 0)
+
+        self.progress_time_label = Gtk.Label(label="00:00")
+        hbox.pack_end(self.progress_time_label, False, False, 0)
 
         self.filename = "temp_audio.wav"
         self.is_recording = False
@@ -103,7 +106,6 @@ class AudioRecorder(Gtk.Window):
     def update_playback_progress(self):
         # Esta função precisa ser ajustada para monitorar o progresso real da reprodução se possível.
         # Atualmente, ela só pulsa a progress_bar sem mostrar o tempo de progresso real.
-        print(__func__)
         if self.playback_process.poll() is None:
             self.progress_bar.pulse()
             return True

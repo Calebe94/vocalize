@@ -53,6 +53,7 @@ class AudioRecorder(Gtk.Window):
         self.playback_process = None
         self.recording_start_time = None
         self.update_progress_id = None
+        self.playing = False
 
     def format_time(self, seconds):
         m, s = divmod(seconds, 60)
@@ -99,16 +100,24 @@ class AudioRecorder(Gtk.Window):
         self.progress_bar.set_fraction(0)
 
     def on_play_clicked(self, button):
-        if self.playback_process and self.playback_process.poll() is None:
-            self.playback_process.terminate()
-        if os.path.exists(self.filename):
-            self.playback_process = subprocess.Popen(['aplay', self.filename])
-            self.status_label.set_text(f"Ouvindo áudio...")
-            button.set_label("Parar")
+        if not self.playing:
+            if self.playback_process and self.playback_process.poll() is None:
+                self.playback_process.terminate()
+
+            if os.path.exists(self.filename):
+                self.playback_process = subprocess.Popen(['aplay', self.filename])
+                self.status_label.set_text(f"Ouvindo áudio...")
+                button.set_label("Parar")
+                self.playing = True
+            else:
+                self.status_label.set_text(f"Nenhum áudio para ouvir!")
+                button.set_label("Ouvir")
+                button.set_active(False)
         else:
-            self.status_label.set_text(f"Nenhum áudio para ouvir!")
             button.set_label("Ouvir")
-            button.set_active(False)
+            self.playing = False
+            self.playback_process.terminate()
+
 
     def on_save_clicked(self, button):
         if os.path.exists(self.filename):

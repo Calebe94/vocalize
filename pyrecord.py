@@ -3,6 +3,7 @@ import subprocess
 import os
 import time
 import asyncio
+import wave
 
 gi.require_version('Gtk', '3.0')
 from gi.repository import Gtk, GLib
@@ -83,6 +84,28 @@ class AudioRecorder(Gtk.Window):
             return True  # Continue calling this method
         return False  #
 
+    def get_wav_length(self, filename):
+        with wave.open(filename, 'r') as wav_file:
+            frames = wav_file.getnframes()
+            rate = wav_file.getframerate()
+            duration = frames / float(rate)
+            return duration
+
+    def update_progress_bar(self, progress_bar, duration, start_time):
+        elapsed_time = time.time() - start_time
+        fraction = elapsed_time / duration
+        progress_bar.set_fraction(fraction)
+        if elapsed_time < duration:
+            return True  # Continue the timeout
+        else:
+            progress_bar.set_fraction(1.0)  # Ensure the progress bar completes
+            return False  # Stop the timeout
+
+    def start_progress_bar_update(self, progress_bar, filename):
+        duration = self.get_wav_length(filename)
+        start_time = time.time()
+        GLib.timeout_add_seconds(1, self.update_progress_bar, progress_bar, duration, start_time)
+
     def stop_recording(self):
         if self.is_recording:
             self.record_process.terminate()
@@ -109,6 +132,8 @@ class AudioRecorder(Gtk.Window):
                 self.status_label.set_text(f"Ouvindo áudio...")
                 button.set_label("Parar")
                 self.playing = True
+                self.start_progress_bar_update(self.progress_bar, self.filename)
+
             else:
                 self.status_label.set_text(f"Nenhum áudio para ouvir!")
                 button.set_label("Ouvir")

@@ -18,19 +18,19 @@ class AudioRecorder(Gtk.Window):
         self.status_label = Gtk.Label(label="Pronto")
         vbox.pack_start(self.status_label, True, True, 0)
 
-        self.record_button = Gtk.ToggleButton(label="Iniciar Gravação")
+        self.record_button = Gtk.ToggleButton(label="Gravar")
         self.record_button.connect("toggled", self.on_record_toggle)
         vbox.pack_start(self.record_button, True, True, 0)
 
-        self.delete_button = Gtk.Button(label="Excluir Gravação")
+        self.delete_button = Gtk.Button(label="Excluir")
         self.delete_button.connect("clicked", self.on_delete_clicked)
         vbox.pack_start(self.delete_button, True, True, 0)
 
-        self.play_button = Gtk.ToggleButton(label="Ouvir Gravação")
+        self.play_button = Gtk.ToggleButton(label="Ouvir")
         self.play_button.connect("toggled", self.on_play_clicked)
         vbox.pack_start(self.play_button, True, True, 0)
 
-        self.save_button = Gtk.Button(label="Salvar Áudio")
+        self.save_button = Gtk.Button(label="Salvar")
         self.save_button.connect("clicked", self.on_save_clicked)
         vbox.pack_start(self.save_button, True, True, 0)
 
@@ -56,10 +56,10 @@ class AudioRecorder(Gtk.Window):
 
     def on_record_toggle(self, button):
         if button.get_active():
-            button.set_label("Pausar Gravação")
+            button.set_label("Pausar")
             self.start_recording()
         else:
-            button.set_label("Iniciar Gravação")
+            button.set_label("Iniciar")
             self.stop_recording()
 
     def start_recording(self):
@@ -68,6 +68,8 @@ class AudioRecorder(Gtk.Window):
         self.record_process = subprocess.Popen(['arecord', '-f', 'cd', self.filename],
                                                stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         self.status_label.set_text(f"Gravando áudio...")
+
+        self.progress_time_label.set_text("00:00")
         GLib.timeout_add_seconds(1, self.update_recording_time)
 
     def update_recording_time(self):
@@ -82,7 +84,7 @@ class AudioRecorder(Gtk.Window):
             self.record_process.terminate()
             self.is_recording = False
             self.status_label.set_text(f"Gravação concluída!")
-            self.progress_time_label.set_text("00:00")
+            # self.progress_time_label.set_text("00:00")
 
     def on_delete_clicked(self, button):
         if os.path.exists(self.filename):
@@ -106,8 +108,10 @@ class AudioRecorder(Gtk.Window):
             button.set_active(False)
         else:
             self.status_label.set_text(f"Nenhum áudio para ouvir!")
-            button.set_label("Ouvir Gravação")
+            button.set_label("Ouvir")
             button.set_active(False)
+
+        GLib.timeout_add_seconds(1, self.update_recording_time)
 
     def update_playback_progress(self):
         # Esta função precisa ser ajustada para monitorar o progresso real da reprodução se possível.

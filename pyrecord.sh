@@ -1,0 +1,14 @@
+#!/usr/bin/env sh
+
+rm -f temp_audio.*
+
+. venv/bin/activate > /dev/null 2>&1 || exit 1
+
+python pyrecord.py > /dev/null 2>&1 || exit 1
+
+whisper -f txt --language pt -o . temp_audio.wav > /dev/null 2>&1
+
+cp -f temp_audio.txt whisper.txt > /dev/null 2>&1
+rm -f temp_audio.wav > /dev/null 2>&1
+
+test -f whisper.txt && cat whisper.txt

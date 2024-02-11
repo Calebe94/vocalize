@@ -4,6 +4,7 @@ import os
 import time
 import asyncio
 import wave
+import sys
 
 gi.require_version('Gtk', '3.0')
 from gi.repository import Gtk, GLib
@@ -165,13 +166,16 @@ class AudioRecorder(Gtk.Window):
             self.status_label.set_text("Nenhum áudio para salvar.")
 
     def on_whisper_clicked(self, button):
+        print("This feature is disabled right now. Exiting...")
+        sys.exit(0)
         self.status_label.set_text("Rodando o Whisper...")
         asyncio.ensure_future(self.run_whisper_async())
 
     async def run_whisper_async(self):
         cmd = ['whisper', '-f', 'txt', '--language', 'pt', '-o', '.', self.filename]
-        process = await asyncio.create_subprocess_exec(*cmd, stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.PIPE)
-        await process.communicate()
+        await subprocess.Popen([cmd])
+        # process = await asyncio.create_subprocess_exec(*cmd, stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.PIPE)
+        # await process.communicate()
         GLib.idle_add(self.process_finished, process)
 
     def process_finished(self, process):

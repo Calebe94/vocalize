@@ -11,7 +11,7 @@ class AudioRecorder(Gtk.Window):
     def __init__(self):
         super().__init__(title="Gravador de Áudio")
         self.set_border_width(10)
-        self.set_default_size(400, 250)
+        self.set_default_size(400, 300)
 
         vbox = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=6)
         self.add(vbox)
@@ -23,7 +23,7 @@ class AudioRecorder(Gtk.Window):
         self.record_button.connect("toggled", self.on_record_toggle)
         vbox.pack_start(self.record_button, True, True, 0)
 
-        self.delete_button = Gtk.Button(label="Excluir")
+        self.delete_button = Gtk.Button(label="Excluir Áudio")
         self.delete_button.connect("clicked", self.on_delete_clicked)
         vbox.pack_start(self.delete_button, True, True, 0)
 
@@ -48,7 +48,19 @@ class AudioRecorder(Gtk.Window):
         self.progress_time_label = Gtk.Label(label="00:00")
         hbox.pack_end(self.progress_time_label, False, False, 0)
 
-        self.filename = "temp_audio.wav"
+        # Botões de controle da transcrição
+        self.delete_transcription_button = Gtk.Button(label="Excluir Transcrição")
+        self.delete_transcription_button.connect("clicked", self.on_delete_transcription_clicked)
+        self.delete_transcription_button.set_no_show_all(True)
+        vbox.pack_start(self.delete_transcription_button, True, True, 0)
+
+        self.open_transcription_button = Gtk.Button(label="Abrir Transcrição")
+        self.open_transcription_button.connect("clicked", self.on_open_transcription_clicked)
+        self.open_transcription_button.set_no_show_all(True)
+        vbox.pack_start(self.open_transcription_button, True, True, 0)
+
+        self.filename = "/tmp/vocalize.wav"
+        self.transcription_filename = "{}".format(self.filename.replace(".wav", ".txt"))
         self.is_recording = False
         self.playback_process = None
         self.recording_start_time = None
@@ -153,7 +165,9 @@ class AudioRecorder(Gtk.Window):
             self.progress_bar.set_fraction(0.0)
 
     def run_whisper_command(self, filename):
-        cmd = f"whisper -f txt --language pt -o . {filename} > /dev/null 2>&1"
+        # self.transcription_filename = f"{filename}.txt"
+        print(self.transcription_filename)
+        cmd = f"whisper -f txt --language pt -o /tmp/ {filename} > /dev/null 2>&1"
         process = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         process.communicate()
         GLib.idle_add(self.process_finished)
@@ -161,6 +175,20 @@ class AudioRecorder(Gtk.Window):
     def process_finished(self):
         self.stop_progress_pulse()
         self.status_label.set_text("Transcrição concluída!")
+        # Mostrar os botões de transcrição
+        self.delete_transcription_button.show()
+        self.open_transcription_button.show()
+
+    def on_delete_transcription_clicked(self, button):
+        if os.path.exists(self.transcription_filename):
+            os.remove(self.transcription_filename)
+            self.status_label.set_text("Transcrição excluída com sucesso.")
+        self.delete_transcription_button.hide()
+        self.open_transcription_button.hide()
+
+    def on_open_transcription_clicked(self, button):
+        if os.path.exists(self.transcription_filename):
+            subprocess.Popen(['xdg-open', self.transcription_filename])
 
 def main():
     win = AudioRecorder()

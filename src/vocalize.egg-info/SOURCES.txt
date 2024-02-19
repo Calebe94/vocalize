@@ -1,0 +1,12 @@
+LICENSE
+README.md
+setup.cfg
+setup.py
+src/vocalize/__init__.py
+src/vocalize/__main__.py
+src/vocalize.egg-info/PKG-INFO
+src/vocalize.egg-info/SOURCES.txt
+src/vocalize.egg-info/dependency_links.txt
+src/vocalize.egg-info/entry_points.txt
+src/vocalize.egg-info/requires.txt
+src/vocalize.egg-info/top_level.txt

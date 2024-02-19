@@ -185,7 +185,7 @@ class AudioRecorder(Gtk.Window):
             with open(text_file) as txt:
                 print(txt.read())
 
-if __name__ == "__main__":
+def main():
     win = AudioRecorder()
     win.connect("destroy", Gtk.main_quit)
     win.show_all()

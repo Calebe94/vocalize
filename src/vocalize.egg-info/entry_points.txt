@@ -1,0 +1,2 @@
+[console_scripts]
+vocalize = vocalize.__main__:main

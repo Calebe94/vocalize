@@ -8,31 +8,54 @@ Oferece uma interface gráfica intuitiva para gravar áudio, excluir gravações
 
 Ele utiliza o módulo `arecord` para gravação de áudio e `aplay` para reprodução de áudio no sistema.
 
-## Instalação
+### Instalando através do código fonte
 
-Para utilizar o Vocalize, siga estas etapas:
+Clone o repositório:
 
-1. **Pré-requisitos:**
-   - Certifique-se de ter o Python instalado em seu sistema. Você pode baixá-lo em [python.org](https://www.python.org/).
-   - Instale as dependências necessárias executando:
-     ```
-     pip install PyGObject
-     ```
+``` sh
+git clone https://github.com/calebe94/vocalize
+```
 
-2. **Clone o repositório:**
-   ```
-   git clone https://github.com/seu_usuario/vocalize.git
-   ```
+Entre no diretório criado:
 
-3. **Acesse o diretório do projeto:**
-   ```
-   cd vocalize
-   ```
+``` sh
+cd vocalize/
+```
 
-4. **Execute o aplicativo:**
-   ```
-   python vocalize.py
-   ```
+E rode o seguinte comando:
+
+``` sh
+pip install .
+```
+
+## Buildando o pacote
+
+Se você está contribuindo com o projeto e vai testar a distribuição do pacote, siga os seguintes passos:
+
+Com o repositório já clonado e no diretório raiz do projeto, crie um ambiente virtual Python:
+
+```sh
+virtualenv venv
+source venv/bin/activate
+```
+
+Instale o pacote `build`:
+
+```sh
+pip install --upgrade build
+```
+
+Agora rode o comando a seguir na pasta raiz do projeto:
+
+```sh
+$ python3 -m build
+```
+
+Agora para instalar o `vocalize` através do pacote gerado, basta rodar o seguinte comando:
+
+``` sh
+pip install dist/vocalize_*.tar.gz
+```
 
 ## Uso
 
@@ -41,8 +64,7 @@ Para utilizar o Vocalize, siga estas etapas:
 - Você pode pausar a gravação a qualquer momento clicando novamente no botão "Gravar".
 - Para excluir a gravação atual, clique no botão "Excluir".
 - Para ouvir a gravação, clique no botão "Ouvir". Durante a reprodução, o botão se transformará em "Parar".
-- Se desejar salvar a transcrição em texto do áudio gravado, clique no botão "Salvar".
-- **Nota:** A funcionalidade "Whisper" está desativada neste momento e será implementada em futuras versões.
+- Se desejar salvar a transcrição em texto do áudio gravado, clique no botão "Transcrever".
 
 ## Contribuindo
 

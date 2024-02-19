@@ -2,9 +2,7 @@ import gi
 import subprocess
 import os
 import time
-import asyncio
-import wave
-import sys
+import threading
 
 gi.require_version('Gtk', '3.0')
 from gi.repository import Gtk, GLib
@@ -37,7 +35,7 @@ class AudioRecorder(Gtk.Window):
         self.save_button.connect("clicked", self.on_save_clicked)
         vbox.pack_start(self.save_button, True, True, 0)
 
-        self.whisper_button = Gtk.Button(label="Whisper")
+        self.whisper_button = Gtk.Button(label="Transcrever")
         self.whisper_button.connect("clicked", self.on_whisper_clicked)
         vbox.pack_start(self.whisper_button, True, True, 0)
 
@@ -84,32 +82,6 @@ class AudioRecorder(Gtk.Window):
             return True
         return False
 
-    def get_wav_length(self, filename):
-        with wave.open(filename, 'r') as wav_file:
-            frames = wav_file.getnframes()
-            rate = wav_file.getframerate()
-            duration = frames / float(rate)
-            return duration
-
-    def update_progress(self, duration, start_time):
-        if not self.playing:
-            return False
-        elapsed_time = time.time() - start_time
-        fraction = elapsed_time / duration
-        self.progress_bar.set_fraction(min(fraction, 1.0))
-        self.progress_time_label.set_text(self.format_time(elapsed_time))
-        if elapsed_time < duration:
-            return True
-        else:
-            self.progress_bar.set_fraction(1.0)
-            self.progress_time_label.set_text(self.format_time(duration))
-            return False
-
-    def start_progress_update(self, filename):
-        duration = self.get_wav_length(filename)
-        start_time = time.time()
-        GLib.timeout_add_seconds(1, self.update_progress, duration, start_time)
-
     def stop_recording(self):
         if self.is_recording:
             self.record_process.terminate()
@@ -137,25 +109,22 @@ class AudioRecorder(Gtk.Window):
                 self.status_label.set_text("Ouvindo áudio...")
                 button.set_label("Parar")
                 self.playing = True
-                self.start_progress_update(self.filename)
-                GLib.timeout_add_seconds(1, self.monitor_playback)  # Monitor playback
+                GLib.timeout_add_seconds(1, self.monitor_playback)
 
     def monitor_playback(self):
         if self.playback_process and self.playback_process.poll() is None:
-            # Playback is still ongoing
-            return True  # Continue checking
+            return True
         else:
-            # Playback has finished or was stopped
             self.reset_playback_ui()
-            return False  # Stop checking
+            return False
 
     def reset_playback_ui(self):
-        GLib.idle_add(self.play_button.set_label, "Ouvir")
+        self.play_button.set_label("Ouvir")
         self.playing = False
-        GLib.idle_add(self.status_label.set_text, "Pronto!")
-        GLib.idle_add(self.progress_bar.set_fraction, 0.0)
-        GLib.idle_add(self.progress_time_label.set_text, "00:00")
-        GLib.idle_add(self.play_button.set_active, False)
+        self.status_label.set_text("Pronto!")
+        self.progress_bar.set_fraction(0.0)
+        self.progress_time_label.set_text("00:00")
+        self.play_button.set_active(False)
 
     def on_save_clicked(self, button):
         if os.path.exists(self.filename):
@@ -166,27 +135,38 @@ class AudioRecorder(Gtk.Window):
             self.status_label.set_text("Nenhum áudio para salvar.")
 
     def on_whisper_clicked(self, button):
-        print("This feature is disabled right now. Exiting...")
-        sys.exit(0)
-        self.status_label.set_text("Rodando o Whisper...")
-        asyncio.ensure_future(self.run_whisper_async())
+        self.status_label.set_text("Transcrevendo áudio...")
+        self.progress_bar.set_pulse_step(0.1)
+        self.start_progress_pulse()
+        threading.Thread(target=self.run_whisper_command, args=(self.filename,)).start()
 
-    async def run_whisper_async(self):
-        cmd = ['whisper', '-f', 'txt', '--language', 'pt', '-o', '.', self.filename]
-        await subprocess.Popen([cmd])
-        # process = await asyncio.create_subprocess_exec(*cmd, stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.PIPE)
-        # await process.communicate()
-        GLib.idle_add(self.process_finished, process)
+    def start_progress_pulse(self):
+        self.pulse_id = GLib.timeout_add(100, self.pulse_progress_bar)
 
-    def process_finished(self, process):
-        self.status_label.set_text("Texto gerado!")
-        text_file = self.filename.replace(".wav", ".txt")
-        if os.path.exists(text_file):
-            with open(text_file) as txt:
-                print(txt.read())
+    def pulse_progress_bar(self):
+        self.progress_bar.pulse()
+        return True
+
+    def stop_progress_pulse(self):
+        if hasattr(self, 'pulse_id'):
+            GLib.source_remove(self.pulse_id)
+            self.progress_bar.set_fraction(0.0)
+
+    def run_whisper_command(self, filename):
+        cmd = f"whisper -f txt --language pt -o . {filename} > /dev/null 2>&1"
+        process = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        process.communicate()
+        GLib.idle_add(self.process_finished)
+
+    def process_finished(self):
+        self.stop_progress_pulse()
+        self.status_label.set_text("Transcrição concluída!")
 
 def main():
     win = AudioRecorder()
     win.connect("destroy", Gtk.main_quit)
     win.show_all()
     Gtk.main()
+
+if __name__ == "__main__":
+    main()

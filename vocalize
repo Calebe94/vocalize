@@ -1,22 +1,44 @@
-#!/usr/bin/env sh
+#!/bin/bash
 
 [ -f "$(which tgpt)" ] || exit 1
 [ -f "$(which whisper)" ] || exit 1
+[ -f "$(which whiptail)" ] || exit 1
+
+TERM=ansi
 
 rm -f /tmp/vocalize.*
 
-echo "Gravando áudio..."
-vocalize > /dev/null 2>&1 || exit 1
+audio_file="/tmp/vocalize.wav"
+if [ -f "$audio_file" ]; then
+	menu_choices=("Gravar" "Excluir Áudio" "Ouvir" "Salvar" "Transcrever")
+else
+	menu_choices=("Gravar")
+fi
 
-# echo "Transformando áudio em texto..."
-# whisper -f txt --language pt -o . temp_audio.wav > /dev/null 2>&1
+menu_options=()
+for choice in "${menu_choices[@]}"; do
+	menu_options+=("$choice" "")
+done
 
-# cp -f temp_audio.txt whisper.txt > /dev/null 2>&1
-# rm -f temp_audio.wav > /dev/null 2>&1
+chosen_option=$(whiptail --title "Vocalize" --menu "Escolha uma opção:" 15 40 8 "${menu_options[@]}" 3>&1 1>&2 2>&3)
 
-test -f /tmp/vocalize.txt && cat /tmp/vocalize.txt
-
-echo "Gerando o texto solicitado..."
-tgpt "$(cat /tmp/vocalize.txt)"
-
-# zsh
+case $chosen_option in
+"Gravar")
+	echo "Iniciando gravação..."
+	;;
+"Excluir Áudio")
+	echo "Excluindo o áudio..."
+	;;
+"Ouvir")
+	echo "Reproduzindo o áudio..."
+	;;
+"Salvar")
+	echo "Salvando o áudio..."
+	;;
+"Transcrever")
+	echo "Transcrevendo o áudio..."
+	;;
+*)
+	echo "Operação cancelada"
+	;;
+esac

@@ -3,24 +3,20 @@
 [ -f "$(which tgpt)" ] || exit 1
 [ -f "$(which whisper)" ] || exit 1
 
-cd ~/Projects/python/pyrecord/ || exit 1
-
-rm -f temp_audio.*
-
-. venv/bin/activate > /dev/null 2>&1 || exit 1
+rm -f /tmp/vocalize.*
 
 echo "Gravando áudio..."
-python pyrecord.py > /dev/null 2>&1 || exit 1
+vocalize > /dev/null 2>&1 || exit 1
 
-echo "Transformando áudio em texto..."
-whisper -f txt --language pt -o . temp_audio.wav > /dev/null 2>&1
+# echo "Transformando áudio em texto..."
+# whisper -f txt --language pt -o . temp_audio.wav > /dev/null 2>&1
 
-cp -f temp_audio.txt whisper.txt > /dev/null 2>&1
-rm -f temp_audio.wav > /dev/null 2>&1
+# cp -f temp_audio.txt whisper.txt > /dev/null 2>&1
+# rm -f temp_audio.wav > /dev/null 2>&1
 
-test -f whisper.txt && cat whisper.txt
+test -f /tmp/vocalize.txt && cat /tmp/vocalize.txt
 
 echo "Gerando o texto solicitado..."
-tgpt "$(cat whisper.txt)"
+tgpt "$(cat /tmp/vocalize.txt)"
 
 # zsh

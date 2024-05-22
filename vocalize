@@ -7,6 +7,7 @@
 TERM=ansi
 
 audio_file="/tmp/vocalize.wav"
+text_file="${audio_file%.wav}.txt"
 
 play_audio() {
 	clear
@@ -24,7 +25,7 @@ play_audio() {
 record_audio() {
 
 	echo "Iniciando gravação do áudio. Pressione Cancel para interromper a gravação."
-	arecord -f cd -D default -t wav -N "$audio_file" >/dev/null 2>&1 &
+	arecord -f -cd -t wav "$audio_file" >/dev/null 2>&1 &
 
 	arecord_pid=$!
 
@@ -32,8 +33,12 @@ record_audio() {
 	response=$?
 
 	kill -SIGINT $arecord_pid
-	if [ $response -ne 0 ]; then
 
+    # May God forgive this workaround
+	mv "$audio_file" /tmp/aux.wav
+    ffmpeg -i /tmp/aux -ar 16000 "$audio_file"
+
+	if [ $response -ne 0 ]; then
 		echo "Gravação do áudio cancelada."
 		rm -f "$audio_file"
 		return 1
@@ -54,9 +59,36 @@ save_audio() {
 	echo "O arquivo foi copiado para: $HOME/$file_name"
 }
 
+open_transcribed_audio()
+{
+    whiptail --title "Vocalize" --scrolltext --textbox "$text_file" 12 80
+}
+
+remove_transcribed_audio()
+{
+    rm -f "$text_file"
+    whiptail --title "Vocalize" --infobox "Texto removido!" 12 80
+    sleep 2
+}
+
+transcribe_audio()
+{
+    whiptail --title "Vocalize" --infobox "Transcrevendo o audio, aguarde..." 12 80
+    whisper -f "$audio_file" \
+            -l pt \
+            -np \
+            -m ~/Packages/whisper.cpp/models/ggml-base.bin \
+            -otxt \
+            -of "${text_file%.txt}"
+            # God...
+    open_transcribed_audio
+}
+
 while true; do
-	if [ -f "$audio_file" ]; then
-		menu_choices=("Gravar" "Excluir Áudio" "Ouvir" "Salvar" "Transcrever")
+	if [ -f "$audio_file" ] && [ ! -f "$text_file" ]; then
+		menu_choices=("Gravar" "Excluir Áudio" "Ouvir" "Salvar" "Transcrever(experimental)")
+	elif [ -f "$audio_file" ] && [ -f "$text_file" ]; then
+		menu_choices=("Gravar" "Excluir Áudio" "Ouvir" "Salvar" "Abrir Transcrição(experimental)" "Excluir Transcrição(experimental)")
 	else
 		menu_choices=("Gravar")
 	fi
@@ -70,23 +102,25 @@ while true; do
 
 	case $chosen_option in
 	"Gravar")
-		echo "Iniciando gravação..."
 		record_audio
 		;;
 	"Excluir Áudio")
-		echo "Excluindo o áudio..."
 		rm -f "$audio_file"
 		;;
 	"Ouvir")
-		echo "Reproduzindo o áudio..."
 		play_audio
 		;;
 	"Salvar")
-		echo "Salvando o áudio..."
 		save_audio
 		;;
-	"Transcrever")
-		echo "Transcrevendo o áudio..."
+    "Abrir Transcrição(experimental)")
+        open_transcribed_audio
+        ;;
+    "Excluir Transcrição(experimental)")
+        remove_transcribed_audio
+        ;;
+	"Transcrever(experimental)")
+        transcribe_audio
 		;;
 	*)
 		echo "Operação cancelada"

@@ -34,9 +34,9 @@ record_audio() {
 
 	kill -SIGINT $arecord_pid
 
-    # May God forgive this workaround
+	# May God forgive this workaround
 	mv "$audio_file" /tmp/aux.wav
-    ffmpeg -i /tmp/aux -ar 16000 "$audio_file"
+	ffmpeg -i /tmp/aux -ar 16000 "$audio_file"
 
 	if [ $response -ne 0 ]; then
 		echo "Gravação do áudio cancelada."
@@ -59,29 +59,26 @@ save_audio() {
 	echo "O arquivo foi copiado para: $HOME/$file_name"
 }
 
-open_transcribed_audio()
-{
-    whiptail --title "Vocalize" --scrolltext --textbox "$text_file" 12 80
+open_transcribed_audio() {
+	whiptail --title "Vocalize" --scrolltext --textbox "$text_file" 12 80
 }
 
-remove_transcribed_audio()
-{
-    rm -f "$text_file"
-    whiptail --title "Vocalize" --infobox "Texto removido!" 12 80
-    sleep 2
+remove_transcribed_audio() {
+	rm -f "$text_file"
+	whiptail --title "Vocalize" --infobox "Texto removido!" 12 80
+	sleep 2
 }
 
-transcribe_audio()
-{
-    whiptail --title "Vocalize" --infobox "Transcrevendo o audio, aguarde..." 12 80
-    whisper -f "$audio_file" \
-            -l pt \
-            -np \
-            -m ~/Packages/whisper.cpp/models/ggml-base.bin \
-            -otxt \
-            -of "${text_file%.txt}"
-            # God...
-    open_transcribed_audio
+transcribe_audio() {
+	whiptail --title "Vocalize" --infobox "Transcrevendo o audio, aguarde..." 12 80
+	whisper -f "$audio_file" \
+		-l pt \
+		-np \
+		-m ~/Packages/whisper.cpp/models/ggml-base.bin \
+		-otxt \
+		-of "${text_file%.txt}"
+	# God...
+	open_transcribed_audio
 }
 
 while true; do
@@ -113,14 +110,14 @@ while true; do
 	"Salvar")
 		save_audio
 		;;
-    "Abrir Transcrição(experimental)")
-        open_transcribed_audio
-        ;;
-    "Excluir Transcrição(experimental)")
-        remove_transcribed_audio
-        ;;
+	"Abrir Transcrição(experimental)")
+		open_transcribed_audio
+		;;
+	"Excluir Transcrição(experimental)")
+		remove_transcribed_audio
+		;;
 	"Transcrever(experimental)")
-        transcribe_audio
+		transcribe_audio
 		;;
 	*)
 		echo "Operação cancelada"

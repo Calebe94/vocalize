@@ -42,6 +42,18 @@ record_audio() {
 	return 0
 }
 
+save_audio() {
+	file_name=$(whiptail --inputbox "Digite um nome para salvar o áudio:" 10 50 3>&1 1>&2 2>&3)
+
+	if [ -z "$file_name" ]; then
+		echo "Nome de arquivo inválido. Ação cancelada."
+		return
+	fi
+
+	cp "$audio_file" "$HOME/$file_name.wav"
+	echo "O arquivo foi copiado para: $HOME/$file_name"
+}
+
 while true; do
 	if [ -f "$audio_file" ]; then
 		menu_choices=("Gravar" "Excluir Áudio" "Ouvir" "Salvar" "Transcrever")
@@ -71,6 +83,7 @@ while true; do
 		;;
 	"Salvar")
 		echo "Salvando o áudio..."
+		save_audio
 		;;
 	"Transcrever")
 		echo "Transcrevendo o áudio..."

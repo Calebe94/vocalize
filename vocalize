@@ -8,67 +8,76 @@ TERM=ansi
 
 audio_file="/tmp/vocalize.wav"
 
-rm -f "$audio_file"
+play_audio() {
+	clear
+	echo "MPV Running"
+	clear
+	printf "\033[8;40;100t"
+	printf "\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n"
+	printf "\033[13C  ╔══════════════════════════╗\n"
+	printf "\033[13C  ║     MPV Running...       ║\n"
+	printf "\033[13C  ╚══════════════════════════╝\n"
 
-gravar_audio() {
-
-    echo "Iniciando gravação do áudio. Pressione Cancel para interromper a gravação."
-    arecord -f cd -D default -t wav -N "$audio_file" >/dev/null 2>&1 &
-
-
-    arecord_pid=$!
-
-
-    whiptail --title "Gravação de Áudio" --yesno "A gravação está em andamento. Deseja salvar o áudio?" 10 50
-    response=$?
-
-
-    if [ $response -ne 0 ]; then
-        kill -SIGINT $arecord_pid
-        echo "Gravação do áudio cancelada."
-        rm -f "$audio_file"
-        return 1
-    fi
-
-    return 0
+	mpv --no-video --input-terminal=yes "$audio_file"
 }
 
+record_audio() {
+
+	echo "Iniciando gravação do áudio. Pressione Cancel para interromper a gravação."
+	arecord -f cd -D default -t wav -N "$audio_file" >/dev/null 2>&1 &
+
+	arecord_pid=$!
+
+	whiptail --title "Gravação de Áudio" --yesno "A gravação está em andamento. Deseja salvar o áudio?" 10 50
+	response=$?
+
+	kill -SIGINT $arecord_pid
+	if [ $response -ne 0 ]; then
+
+		echo "Gravação do áudio cancelada."
+		rm -f "$audio_file"
+		return 1
+	fi
+
+	return 0
+}
 
 while true; do
-    if [ -f "$audio_file" ]; then
-        menu_choices=("Gravar" "Excluir Áudio" "Ouvir" "Salvar" "Transcrever")
-    else
-        menu_choices=("Gravar")
-    fi
+	if [ -f "$audio_file" ]; then
+		menu_choices=("Gravar" "Excluir Áudio" "Ouvir" "Salvar" "Transcrever")
+	else
+		menu_choices=("Gravar")
+	fi
 
-    menu_options=()
-    for choice in "${menu_choices[@]}"; do
-        menu_options+=("$choice" "")
-    done
+	menu_options=()
+	for choice in "${menu_choices[@]}"; do
+		menu_options+=("$choice" "")
+	done
 
-    chosen_option=$(whiptail --title "Vocalize" --menu "Escolha uma opção:" 15 40 8 "${menu_options[@]}" 3>&1 1>&2 2>&3)
+	chosen_option=$(whiptail --title "Vocalize" --menu "Escolha uma opção:" 15 40 8 "${menu_options[@]}" 3>&1 1>&2 2>&3)
 
-    case $chosen_option in
-        "Gravar")
-            echo "Iniciando gravação..."
-            gravar_audio
-            ;;
-        "Excluir Áudio")
-            echo "Excluindo o áudio..."
-            rm -f "$audio_file"
-            ;;
-        "Ouvir")
-            echo "Reproduzindo o áudio..."
-            ;;
-        "Salvar")
-            echo "Salvando o áudio..."
-            ;;
-        "Transcrever")
-            echo "Transcrevendo o áudio..."
-            ;;
-        *)
-            echo "Operação cancelada"
-            break
-            ;;
-    esac
+	case $chosen_option in
+	"Gravar")
+		echo "Iniciando gravação..."
+		record_audio
+		;;
+	"Excluir Áudio")
+		echo "Excluindo o áudio..."
+		rm -f "$audio_file"
+		;;
+	"Ouvir")
+		echo "Reproduzindo o áudio..."
+		play_audio
+		;;
+	"Salvar")
+		echo "Salvando o áudio..."
+		;;
+	"Transcrever")
+		echo "Transcrevendo o áudio..."
+		;;
+	*)
+		echo "Operação cancelada"
+		break
+		;;
+	esac
 done

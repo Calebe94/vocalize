@@ -6,39 +6,69 @@
 
 TERM=ansi
 
-rm -f /tmp/vocalize.*
-
 audio_file="/tmp/vocalize.wav"
-if [ -f "$audio_file" ]; then
-	menu_choices=("Gravar" "Excluir Áudio" "Ouvir" "Salvar" "Transcrever")
-else
-	menu_choices=("Gravar")
-fi
 
-menu_options=()
-for choice in "${menu_choices[@]}"; do
-	menu_options+=("$choice" "")
+rm -f "$audio_file"
+
+gravar_audio() {
+
+    echo "Iniciando gravação do áudio. Pressione Cancel para interromper a gravação."
+    arecord -f cd -D default -t wav -N "$audio_file" >/dev/null 2>&1 &
+
+
+    arecord_pid=$!
+
+
+    whiptail --title "Gravação de Áudio" --yesno "A gravação está em andamento. Deseja salvar o áudio?" 10 50
+    response=$?
+
+
+    if [ $response -ne 0 ]; then
+        kill -SIGINT $arecord_pid
+        echo "Gravação do áudio cancelada."
+        rm -f "$audio_file"
+        return 1
+    fi
+
+    return 0
+}
+
+
+while true; do
+    if [ -f "$audio_file" ]; then
+        menu_choices=("Gravar" "Excluir Áudio" "Ouvir" "Salvar" "Transcrever")
+    else
+        menu_choices=("Gravar")
+    fi
+
+    menu_options=()
+    for choice in "${menu_choices[@]}"; do
+        menu_options+=("$choice" "")
+    done
+
+    chosen_option=$(whiptail --title "Vocalize" --menu "Escolha uma opção:" 15 40 8 "${menu_options[@]}" 3>&1 1>&2 2>&3)
+
+    case $chosen_option in
+        "Gravar")
+            echo "Iniciando gravação..."
+            gravar_audio
+            ;;
+        "Excluir Áudio")
+            echo "Excluindo o áudio..."
+            rm -f "$audio_file"
+            ;;
+        "Ouvir")
+            echo "Reproduzindo o áudio..."
+            ;;
+        "Salvar")
+            echo "Salvando o áudio..."
+            ;;
+        "Transcrever")
+            echo "Transcrevendo o áudio..."
+            ;;
+        *)
+            echo "Operação cancelada"
+            break
+            ;;
+    esac
 done
-
-chosen_option=$(whiptail --title "Vocalize" --menu "Escolha uma opção:" 15 40 8 "${menu_options[@]}" 3>&1 1>&2 2>&3)
-
-case $chosen_option in
-"Gravar")
-	echo "Iniciando gravação..."
-	;;
-"Excluir Áudio")
-	echo "Excluindo o áudio..."
-	;;
-"Ouvir")
-	echo "Reproduzindo o áudio..."
-	;;
-"Salvar")
-	echo "Salvando o áudio..."
-	;;
-"Transcrever")
-	echo "Transcrevendo o áudio..."
-	;;
-*)
-	echo "Operação cancelada"
-	;;
-esac

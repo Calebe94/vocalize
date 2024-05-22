@@ -66,7 +66,19 @@ open_transcribed_audio() {
 remove_transcribed_audio() {
 	rm -f "$text_file"
 	whiptail --title "Vocalize" --infobox "Texto removido!" 12 80
-	sleep 2
+	sleep 1
+}
+
+save_transcribed_audio() {
+	file_name=$(whiptail --inputbox "Digite um nome para salvar o arquivo:" 10 50 3>&1 1>&2 2>&3)
+
+	if [ -z "$file_name" ]; then
+		echo "Nome de arquivo inválido. Ação cancelada."
+		return
+	fi
+
+	cp "$text_file" "$HOME/$file_name.txt"
+	echo "O arquivo foi copiado para: $HOME/$file_name"
 }
 
 transcribe_audio() {
@@ -85,7 +97,10 @@ while true; do
 	if [ -f "$audio_file" ] && [ ! -f "$text_file" ]; then
 		menu_choices=("Gravar" "Excluir Áudio" "Ouvir" "Salvar" "Transcrever(experimental)")
 	elif [ -f "$audio_file" ] && [ -f "$text_file" ]; then
-		menu_choices=("Gravar" "Excluir Áudio" "Ouvir" "Salvar" "Abrir Transcrição(experimental)" "Excluir Transcrição(experimental)")
+		menu_choices=("Gravar" "Excluir Áudio" "Ouvir" "Salvar Áudio"
+			"Abrir Transcrição(experimental)"
+			"Salvar Transcrição(experimental)"
+			"Excluir Transcrição(experimental)")
 	else
 		menu_choices=("Gravar")
 	fi
@@ -103,6 +118,8 @@ while true; do
 		;;
 	"Excluir Áudio")
 		rm -f "$audio_file"
+		whiptail --title "Vocalize" --infobox "Arquivo removido!" 12 80
+		sleep 1
 		;;
 	"Ouvir")
 		play_audio
@@ -112,6 +129,9 @@ while true; do
 		;;
 	"Abrir Transcrição(experimental)")
 		open_transcribed_audio
+		;;
+	"Salvar Transcrição(experimental)")
+		save_transcribed_audio
 		;;
 	"Excluir Transcrição(experimental)")
 		remove_transcribed_audio

@@ -63,8 +63,7 @@ open_transcribed_audio() {
 
 remove_transcribed_audio() {
 	rm -f "$text_file"
-	whiptail --title "Vocalize" --infobox "Texto removido!" 12 80
-	sleep 1
+	whiptail --title "Vocalize" --msgbox "Texto removido!" 12 80
 }
 
 save_transcribed_audio() {
@@ -116,8 +115,7 @@ while true; do
 		;;
 	"Excluir Áudio")
 		rm -f "$audio_file"
-		whiptail --title "Vocalize" --infobox "Arquivo removido!" 12 80
-		sleep 1
+		whiptail --title "Vocalize" --msgbox "Arquivo removido!" 12 80
 		;;
 	"Ouvir")
 		play_audio

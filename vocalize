@@ -11,8 +11,6 @@ text_file="${audio_file%.wav}.txt"
 
 play_audio() {
 	clear
-	echo "MPV Running"
-	clear
 	printf "\033[8;40;100t"
 	printf "\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n"
 	printf "\033[13C  ╔══════════════════════════╗\n"
@@ -25,7 +23,7 @@ play_audio() {
 record_audio() {
 
 	echo "Iniciando gravação do áudio. Pressione Cancel para interromper a gravação."
-	arecord -f -cd -t wav "$audio_file" >/dev/null 2>&1 &
+	arecord -f cd -t wav "$audio_file" >/dev/null 2>&1 &
 
 	arecord_pid=$!
 
@@ -36,7 +34,7 @@ record_audio() {
 
 	# May God forgive this workaround
 	mv "$audio_file" /tmp/aux.wav
-	ffmpeg -i /tmp/aux -ar 16000 "$audio_file"
+	ffmpeg -i /tmp/aux.wav -ar 16000 "$audio_file"
 
 	if [ $response -ne 0 ]; then
 		echo "Gravação do áudio cancelada."
@@ -141,6 +139,7 @@ while true; do
 		;;
 	*)
 		echo "Operação cancelada"
+        clear
 		break
 		;;
 	esac

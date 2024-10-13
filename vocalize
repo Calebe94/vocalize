@@ -11,6 +11,7 @@ MINIMAL_MODE=false
 
 audio_file="/tmp/vocalize.wav"
 text_file="${audio_file%.wav}.txt"
+enriched_transcription_file="${text_file%.txt}-enriched.txt"
 
 cat <<EOF >/tmp/vocalize-prompt
 Abaixo está a transcrição de um áudio que eu gravei. Eu preciso que você reescreva ele, tornando-o mais legível, retorne somente o texto reescrito e mais nada:
@@ -104,7 +105,6 @@ copy_transcribed_audio_to_clipboard() {
 }
 
 enrich_transcription() {
-	enriched_transcription_file="${text_file%.txt}-enriched.txt"
 	tgpt -q --preprompt "$(cat /tmp/vocalize-prompt)" "$(cat $text_file)" >$enriched_transcription_file
 	[ "$MINIMAL_MODE" = false ] && whiptail --title "Vocalize" --scrolltext --textbox "$enriched_transcription_file" 12 80
 }
@@ -120,6 +120,12 @@ record_and_transcribe() {
 	copy_transcribed_audio_to_clipboard "${text_file%.txt}-enriched.txt"
 }
 
+cleanup_old_files() {
+	rm -f "$audio_file"
+	rm -f "$text_file"
+	rm -f "$enriched_transcription_file"
+}
+
 # If called with no '-r' option, show all options
 main_vocalize() {
 	while true; do
@@ -130,7 +136,9 @@ main_vocalize() {
 				"Abrir Transcrição(experimental)"
 				"Salvar Transcrição(experimental)"
 				"Excluir Transcrição(experimental)"
-				"Copiar para a Clipboard(experimental)")
+				"Copiar para a Clipboard(experimental)"
+				"Melhorar texto com IA(experimental)"
+			)
 		else
 			menu_choices=("Gravar")
 		fi
@@ -140,7 +148,7 @@ main_vocalize() {
 			menu_options+=("$choice" "")
 		done
 
-		chosen_option=$(whiptail --title "Vocalize" --menu "Escolha uma opção:" 15 40 8 "${menu_options[@]}" 3>&1 1>&2 2>&3)
+		chosen_option=$(whiptail --title "Vocalize" --menu "Escolha uma opção:" 15 40 9 "${menu_options[@]}" 3>&1 1>&2 2>&3)
 
 		case $chosen_option in
 		"Gravar")
@@ -168,6 +176,10 @@ main_vocalize() {
 		"Excluir Transcrição(experimental)")
 			remove_transcribed_audio
 			;;
+		"Melhorar texto com IA(experimental)")
+			enrich_transcription
+			copy_transcribed_audio_to_clipboard "$enriched_transcription_file"
+			;;
 		"Transcrever(experimental)")
 			transcribe_audio
 			;;
@@ -192,6 +204,7 @@ while getopts ":m" opt; do
 	esac
 done
 
+cleanup_old_files
 if [ "$MINIMAL_MODE" = true ]; then
 	record_and_transcribe
 else

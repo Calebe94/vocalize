@@ -6,6 +6,7 @@
 [ -f "$(which mpv)" ] || exit 1
 [ -f "$(which arecord)" ] || exit 1
 [ -f "$(which ffmpeg)" ] || exit 1
+[ -f "$(which xclip)" ] || exit 1
 
 TERM=ansi
 MINIMAL_MODE=false

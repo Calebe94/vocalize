@@ -28,14 +28,6 @@ The tool offers two main modes of operation:
 - **Minimal Mode**: Run the application with only the audio recording interface visible for a distraction-free experience.
 - **Interactive Mode**: Use an easy-to-navigate terminal menu to access all features of the tool.
 
-## Installation
-
-(To be added...)
-
-## Usage
-
-(To be added...)
-
 ## Requirements
 
 - **[Whisper.cpp](https://github.com/ggerganov/whisper.cpp)**: A speech-to-text engine for audio transcription.
@@ -44,6 +36,60 @@ The tool offers two main modes of operation:
 - **mpv**: A media player to playback recorded audio.
 - **arecord**: For recording audio from the microphone.
 - **ffmpeg**: To convert audio files into the appropriate format for transcription.
+- **xclip**: A clipboard manager that allows copying text to the system clipboard.
+
+## Installation
+
+### Prerequisites
+
+Before installing **Vocalize**, ensure that you have the necessary dependencies installed on your system. For a Debian-based OS, you can install them using the following commands:
+
+```bash
+sudo apt update
+sudo apt install -y arecord ffmpeg whiptail mpv xclip
+```
+
+- **arecord**: A command-line sound recorder for capturing audio from your microphone.
+- **ffmpeg**: A powerful tool to process audio and video files.
+- **whiptail**: A tool to create dialog boxes in shell scripts.
+- **mpv**: A media player used to play back the recorded audio.
+- **xclip**: A clipboard manager that allows copying text to the system clipboard.
+
+### tgpt and whisper.cpp
+
+Comming soon...
+
+### Installing Vocalize
+
+1. Clone the repository or download the source files for **Vocalize**.
+   
+2. Navigate to the **Vocalize** directory and run the following command to install the tool:
+
+```bash
+sudo make install
+```
+
+This will install **Vocalize** into `/usr/local/bin` by default. You can specify a different installation path by setting the `prefix` variable during installation, like this:
+
+```bash
+sudo make install prefix=/custom/path
+```
+
+After installation, the tool will be available to use from the terminal as `vocalize`.
+
+### Uninstallation
+
+To remove **Vocalize** from your system, you can use the following command:
+
+```bash
+sudo make uninstall
+```
+
+This will remove the `vocalize` executable from the installation directory.
+
+## Usage
+
+(To be added...)
 
 ## License
 

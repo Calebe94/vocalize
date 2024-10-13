@@ -11,6 +11,10 @@ TERM=ansi
 audio_file="/tmp/vocalize.wav"
 text_file="${audio_file%.wav}.txt"
 
+cat <<EOF >/tmp/vocalize-prompt
+Abaixo está a transcrição de um áudio que eu gravei. Eu preciso que você reescreva ele, tornando-o mais legível, retorne somente o texto reescrito e mais nada:
+EOF
+
 play_audio() {
 	clear
 	printf "\033[8;40;100t"
@@ -93,14 +97,26 @@ transcribe_audio() {
 }
 
 copy_transcribed_audio_to_clipboard() {
-	cat "${text_file}" | xclip -selection clipboard
+	selected_file="$1"
+	cat "${selected_file}" | xclip -selection clipboard
 	whiptail --title "Vocalize" --msgbox "Texto copiado para a clipboard!" 12 80
 }
 
+enrich_transcription() {
+	enriched_transcription_file="${text_file%.txt}-enriched.txt"
+	tgpt -q --preprompt "$(cat /tmp/vocalize-prompt)" "$(cat $text_file)" >$enriched_transcription_file
+	whiptail --title "Vocalize" --scrolltext --textbox "$enriched_transcription_file" 12 80
+}
+
 record_and_transcribe() {
-	record_audio
+	if ! record_audio; then
+		whiptail --title "Operação cancelada" --msgbox "A gravação foi cancelada." 12 80
+		clear
+		return 1
+	fi
 	transcribe_audio
-	copy_transcribed_audio_to_clipboard
+	enrich_transcription
+	copy_transcribed_audio_to_clipboard "${text_file%.txt}-enriched.txt"
 }
 
 # Check for CLI options
@@ -150,7 +166,7 @@ while true; do
 		save_transcribed_audio
 		;;
 	"Copiar para a Clipboard(experimental)")
-		copy_transcribed_audio_to_clipboard
+		copy_transcribed_audio_to_clipboard "$text_file"
 		;;
 	"Excluir Transcrição(experimental)")
 		remove_transcribed_audio

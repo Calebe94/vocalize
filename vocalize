@@ -92,11 +92,22 @@ transcribe_audio() {
 	open_transcribed_audio
 }
 
-copy_transcribed_audio_to_clipboard()
-{
+copy_transcribed_audio_to_clipboard() {
 	cat "${text_file}" | xclip -selection clipboard
 	whiptail --title "Vocalize" --msgbox "Texto copiado para a clipboard!" 12 80
 }
+
+record_and_transcribe() {
+	record_audio
+	transcribe_audio
+	copy_transcribed_audio_to_clipboard
+}
+
+# Check for CLI options
+if [[ $1 == "-r" || $1 == "--record" ]]; then
+	record_and_transcribe
+	exit 0
+fi
 
 while true; do
 	if [ -f "$audio_file" ] && [ ! -f "$text_file" ]; then
@@ -149,7 +160,7 @@ while true; do
 		;;
 	*)
 		echo "Operação cancelada"
-        clear
+		clear
 		break
 		;;
 	esac

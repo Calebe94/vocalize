@@ -192,10 +192,14 @@ main_vocalize() {
 	done
 }
 
-while getopts ":m" opt; do
+while getopts ":mo" opt; do
 	case ${opt} in
 	m)
 		MINIMAL_MODE=true
+		;;
+	o)
+		copy_transcribed_audio_to_clipboard "$text_file"
+		exit 0
 		;;
 	\?)
 		echo "Uso: $0 [-m]"

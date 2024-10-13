@@ -92,6 +92,12 @@ transcribe_audio() {
 	open_transcribed_audio
 }
 
+copy_transcribed_audio_to_clipboard()
+{
+	cat "${text_file}" | xclip -selection clipboard
+	whiptail --title "Vocalize" --msgbox "Texto copiado para a clipboard!" 12 80
+}
+
 while true; do
 	if [ -f "$audio_file" ] && [ ! -f "$text_file" ]; then
 		menu_choices=("Gravar" "Excluir Áudio" "Ouvir" "Salvar" "Transcrever(experimental)")
@@ -99,7 +105,8 @@ while true; do
 		menu_choices=("Gravar" "Excluir Áudio" "Ouvir" "Salvar Áudio"
 			"Abrir Transcrição(experimental)"
 			"Salvar Transcrição(experimental)"
-			"Excluir Transcrição(experimental)")
+			"Excluir Transcrição(experimental)"
+			"Copiar para a Clipboard(experimental)")
 	else
 		menu_choices=("Gravar")
 	fi
@@ -130,6 +137,9 @@ while true; do
 		;;
 	"Salvar Transcrição(experimental)")
 		save_transcribed_audio
+		;;
+	"Copiar para a Clipboard(experimental)")
+		copy_transcribed_audio_to_clipboard
 		;;
 	"Excluir Transcrição(experimental)")
 		remove_transcribed_audio

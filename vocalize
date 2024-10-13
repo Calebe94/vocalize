@@ -1,5 +1,6 @@
 #!/bin/bash
 
+[ -f "$(which tgpt)" ] || exit 1
 [ -f "$(which whisper)" ] || exit 1
 [ -f "$(which whiptail)" ] || exit 1
 [ -f "$(which mpv)" ] || exit 1

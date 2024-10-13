@@ -14,7 +14,14 @@ text_file="${audio_file%.wav}.txt"
 enriched_transcription_file="${text_file%.txt}-enriched.txt"
 
 cat <<EOF >/tmp/vocalize-prompt
-Abaixo está a transcrição de um áudio que eu gravei. Eu preciso que você reescreva ele, tornando-o mais legível, retorne somente o texto reescrito e mais nada:
+Você é um redator de conteúdo especializado em reescrever textos de forma concisa e clara. Com anos de experiência na síntese de informações complexas, você se destaca em transformar transcrições longas em resumos informativos, mantendo a essência e os pontos principais do assunto.
+
+Sua tarefa é receber uma transcrição de áudio e reescrevê-la de forma mais concisa. O texto refatorado deve ser apresentado de maneira direta, sem comentários ou explicações adicionais.
+
+A transcrição do áudio será enviada para você na próxima mensagem. Certifique-se de entregar somente o texto refatorado e evite produzir qualquer resposta em caso de erro na transcrição. O texto reescrito deve estar em português do Brasil.
+
+Por favor, deixe a seção abaixo em branco para que eu escreva a transcrição do áudio:
+Transcrição do áudio:
 EOF
 
 play_audio() {
@@ -100,8 +107,13 @@ transcribe_audio() {
 copy_transcribed_audio_to_clipboard() {
 	selected_file="$1"
 	cat "${selected_file}" | xclip -selection clipboard
-	whiptail --title "Vocalize" --msgbox "Texto copiado para a clipboard!" 12 80
-	clear
+	if [ "$MINIMAL_MODE" = false ]; then
+		whiptail --title "Vocalize" --msgbox "Texto copiado para a clipboard!" 12 80
+		clear
+	else
+		clear
+		echo "Texto copiado para a clipboard!"
+	fi
 }
 
 enrich_transcription() {
@@ -192,13 +204,19 @@ main_vocalize() {
 	done
 }
 
-while getopts ":mo" opt; do
+while getopts ":mti" opt; do
 	case ${opt} in
 	m)
 		MINIMAL_MODE=true
 		;;
-	o)
+	t)
+		MINIMAL_MODE=true
 		copy_transcribed_audio_to_clipboard "$text_file"
+		exit 0
+		;;
+	i)
+		MINIMAL_MODE=true
+		copy_transcribed_audio_to_clipboard "$enriched_transcription_file"
 		exit 0
 		;;
 	\?)

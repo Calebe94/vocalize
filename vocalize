@@ -7,6 +7,7 @@
 [ -f "$(which ffmpeg)" ] || exit 1
 
 TERM=ansi
+MINIMAL_MODE=false
 
 audio_file="/tmp/vocalize.wav"
 text_file="${audio_file%.wav}.txt"
@@ -92,20 +93,20 @@ transcribe_audio() {
 		-m ~/Packages/whisper.cpp/models/ggml-base.bin \
 		-otxt \
 		-of "${text_file%.txt}"
-	# God...
-	open_transcribed_audio
+	[ "$MINIMAL_MODE" = false ] && open_transcribed_audio
 }
 
 copy_transcribed_audio_to_clipboard() {
 	selected_file="$1"
 	cat "${selected_file}" | xclip -selection clipboard
 	whiptail --title "Vocalize" --msgbox "Texto copiado para a clipboard!" 12 80
+	clear
 }
 
 enrich_transcription() {
 	enriched_transcription_file="${text_file%.txt}-enriched.txt"
 	tgpt -q --preprompt "$(cat /tmp/vocalize-prompt)" "$(cat $text_file)" >$enriched_transcription_file
-	whiptail --title "Vocalize" --scrolltext --textbox "$enriched_transcription_file" 12 80
+	[ "$MINIMAL_MODE" = false ] && whiptail --title "Vocalize" --scrolltext --textbox "$enriched_transcription_file" 12 80
 }
 
 record_and_transcribe() {
@@ -119,65 +120,80 @@ record_and_transcribe() {
 	copy_transcribed_audio_to_clipboard "${text_file%.txt}-enriched.txt"
 }
 
-# Check for CLI options
-if [[ $1 == "-r" || $1 == "--record" ]]; then
-	record_and_transcribe
-	exit 0
-fi
+# If called with no '-r' option, show all options
+main_vocalize() {
+	while true; do
+		if [ -f "$audio_file" ] && [ ! -f "$text_file" ]; then
+			menu_choices=("Gravar" "Excluir Áudio" "Ouvir" "Salvar" "Transcrever(experimental)")
+		elif [ -f "$audio_file" ] && [ -f "$text_file" ]; then
+			menu_choices=("Gravar" "Excluir Áudio" "Ouvir" "Salvar Áudio"
+				"Abrir Transcrição(experimental)"
+				"Salvar Transcrição(experimental)"
+				"Excluir Transcrição(experimental)"
+				"Copiar para a Clipboard(experimental)")
+		else
+			menu_choices=("Gravar")
+		fi
 
-while true; do
-	if [ -f "$audio_file" ] && [ ! -f "$text_file" ]; then
-		menu_choices=("Gravar" "Excluir Áudio" "Ouvir" "Salvar" "Transcrever(experimental)")
-	elif [ -f "$audio_file" ] && [ -f "$text_file" ]; then
-		menu_choices=("Gravar" "Excluir Áudio" "Ouvir" "Salvar Áudio"
-			"Abrir Transcrição(experimental)"
-			"Salvar Transcrição(experimental)"
-			"Excluir Transcrição(experimental)"
-			"Copiar para a Clipboard(experimental)")
-	else
-		menu_choices=("Gravar")
-	fi
+		menu_options=()
+		for choice in "${menu_choices[@]}"; do
+			menu_options+=("$choice" "")
+		done
 
-	menu_options=()
-	for choice in "${menu_choices[@]}"; do
-		menu_options+=("$choice" "")
+		chosen_option=$(whiptail --title "Vocalize" --menu "Escolha uma opção:" 15 40 8 "${menu_options[@]}" 3>&1 1>&2 2>&3)
+
+		case $chosen_option in
+		"Gravar")
+			record_audio
+			;;
+		"Excluir Áudio")
+			rm -f "$audio_file"
+			whiptail --title "Vocalize" --msgbox "Arquivo removido!" 12 80
+			;;
+		"Ouvir")
+			play_audio
+			;;
+		"Salvar")
+			save_audio
+			;;
+		"Abrir Transcrição(experimental)")
+			open_transcribed_audio
+			;;
+		"Salvar Transcrição(experimental)")
+			save_transcribed_audio
+			;;
+		"Copiar para a Clipboard(experimental)")
+			copy_transcribed_audio_to_clipboard "$text_file"
+			;;
+		"Excluir Transcrição(experimental)")
+			remove_transcribed_audio
+			;;
+		"Transcrever(experimental)")
+			transcribe_audio
+			;;
+		*)
+			echo "Operação cancelada"
+			clear
+			break
+			;;
+		esac
 	done
+}
 
-	chosen_option=$(whiptail --title "Vocalize" --menu "Escolha uma opção:" 15 40 8 "${menu_options[@]}" 3>&1 1>&2 2>&3)
-
-	case $chosen_option in
-	"Gravar")
-		record_audio
+while getopts ":m" opt; do
+	case ${opt} in
+	m)
+		MINIMAL_MODE=true
 		;;
-	"Excluir Áudio")
-		rm -f "$audio_file"
-		whiptail --title "Vocalize" --msgbox "Arquivo removido!" 12 80
-		;;
-	"Ouvir")
-		play_audio
-		;;
-	"Salvar")
-		save_audio
-		;;
-	"Abrir Transcrição(experimental)")
-		open_transcribed_audio
-		;;
-	"Salvar Transcrição(experimental)")
-		save_transcribed_audio
-		;;
-	"Copiar para a Clipboard(experimental)")
-		copy_transcribed_audio_to_clipboard "$text_file"
-		;;
-	"Excluir Transcrição(experimental)")
-		remove_transcribed_audio
-		;;
-	"Transcrever(experimental)")
-		transcribe_audio
-		;;
-	*)
-		echo "Operação cancelada"
-		clear
-		break
+	\?)
+		echo "Uso: $0 [-m]"
+		exit 1
 		;;
 	esac
 done
+
+if [ "$MINIMAL_MODE" = true ]; then
+	record_and_transcribe
+else
+	main_vocalize
+fi

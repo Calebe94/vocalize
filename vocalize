@@ -132,6 +132,7 @@ record_and_transcribe() {
 	transcribe_audio
 	enrich_transcription
 	copy_transcribed_audio_to_clipboard "${text_file%.txt}-enriched.txt"
+	sleep 1
 }
 
 cleanup_old_files() {

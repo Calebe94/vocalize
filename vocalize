@@ -16,14 +16,36 @@ text_file="${audio_file%.wav}.txt"
 enriched_transcription_file="${text_file%.txt}-enriched.txt"
 
 cat <<EOF >/tmp/vocalize-prompt
-Você é um redator de conteúdo especializado em reescrever textos de forma concisa e clara. Com anos de experiência na síntese de informações complexas, você se destaca em transformar transcrições longas em resumos informativos, mantendo a essência e os pontos principais do assunto.
+**Instruções para Correção de Texto:**
 
-Sua tarefa é receber uma transcrição de áudio e reescrevê-la de forma mais concisa. O texto refatorado deve ser apresentado de maneira direta, sem comentários ou explicações adicionais.
+Revise a transcrição de áudio fornecida abaixo e faça correções gramaticais e ortográficas para criar uma versão mais clara e profissional do texto original. A saída deve ser somente o texto corrigido, sem qualquer comentário adicional.
 
-A transcrição do áudio será enviada para você na próxima mensagem. Certifique-se de entregar somente o texto refatorado e evite produzir qualquer resposta em caso de erro na transcrição. O texto reescrito deve estar em português do Brasil.
+**Diretrizes de Correção:**
 
-Por favor, deixe a seção abaixo em branco para que eu escreva a transcrição do áudio:
-Transcrição do áudio:
+1. **Erros Gramaticais e Ortográficos:** Corrija todos os erros gramaticais e ortográficos presentes no texto.
+2. **Pontuação:** Ajuste a pontuação conforme necessário para melhorar a leitura.
+3. **Falações Informais:** Remova coloquialismos ou expressões informais que não contribuam para a clareza do texto.
+4. **Tom Natural:** Mantenha o tom natural da conversa, mas busque aumentar a clareza e a formalidade quando apropriado.
+5. **Estrutura e Conteúdo:** Evite alterações significativas na estrutura ou no conteúdo do texto original; mantenha a essência da mensagem.
+6. **Fluidez:** Adicione ou remova palavras quando necessário para melhorar a fluidez da leitura.
+7. **Estilo:** Preserve o estilo informal da transcrição original, mas em uma forma mais polida.
+8. **Correções de Palavras:** Corrija palavras escritas incorretamente, garantindo que sejam usadas corretamente no contexto.
+
+**Resultado:** Ao final, forneça uma versão corrigida que seja concisa, clara e fiel ao texto original, sem qualquer comentário adicional.
+
+Exemplo:
+
+**Texto para correção:**
+
+ Eu estou testando o vocalize e, parentemente, tudo está funcionando corretamente.
+ Eu gostando muito das funções implementadas.
+ Gostei muito do resultado final da aplicação.
+
+**Resultado:**
+
+Eu estou testando o Vocalize e, aparentemente, tudo está funcionando corretamente. Gosto muito das funções implementadas. Gostei muito do resultado final da aplicação.
+
+Agora corrija o texto a seguir:
 EOF
 
 play_audio() {

@@ -1,25 +1,25 @@
-############
-# vocalize #
-############
-
 .POSIX:
 
 prefix = /usr/local
 name = vocalize
 
+all:
+	@echo "all target"
+
 install:
 	@echo "Installing ${name}..."
-	install -Dm555 ./${name} $(DESTDIR)/$(prefix)/bin/
+	install -m 555 ${name} $(DESTDIR)/$(prefix)/bin/
 	@echo "done!"
 
 clean:
-	@echo "There's nothing to clean!"
+	@echo "Cleaning ${name}"
 
 distclean: clean
 
 uninstall:
-	@echo "Uninstalling ${name}..."
+	@echo "Uninstall ${name}"
 	rm -f $(DESTDIR)/$(prefix)/bin/${name}
 	@echo "done!"
 
-# end
+.PHONY: all install clean distclean uninstall
+

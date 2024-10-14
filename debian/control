@@ -1,0 +1,14 @@
+Source: vocalize
+Section: sound
+Priority: optional
+Maintainer: Edimar Calebe Castanho <contato@calebe.dev.br>
+Build-Depends: debhelper (>= 9), dh-virtualenv, python3, python3-setuptools
+Standards-Version: 4.1.4
+Homepage: https://github.com/calebe94/vocalize
+
+Package: vocalize
+Architecture: any
+Depends: ${misc:Depends}, ${python3:Depends}
+Description: Uma ferramenta simples para gravar voz e transformá-la em texto.
+ O Vocalize é uma ferramenta desenvolvida em Python para gravar voz e
+ transformá-la em texto, utilizando tecnologias de reconhecimento de voz.

@@ -1,0 +1,8 @@
+[Desktop Entry]
+Type=Application
+Name=Vocalize
+Comment=Uma ferramenta simples para gravar voz e transformá-la em texto.
+Exec=vocalize
+Icon=vocalize-icon
+Terminal=false
+Categories=Audio;Recording;

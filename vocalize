@@ -1,7 +1,7 @@
 #!/bin/bash
 
 [ -f "$(which tgpt)" ] || exit 1
-[ -f "$(which whisper)" ] || exit 1
+[ -f "$(which main)" ] || { echo "'whisper.cpp/' should be in your \$PATH!"; exit 1; }
 [ -f "$(which whiptail)" ] || exit 1
 [ -f "$(which mpv)" ] || exit 1
 [ -f "$(which arecord)" ] || exit 1
@@ -10,6 +10,7 @@
 
 TERM=ansi
 MINIMAL_MODE=false
+[ -z "$WHISPER_MODELS_DIR" ] && { echo "you should 'export WHISPER_MODELS_DIR' path"; exit 1; }
 
 audio_file="/tmp/vocalize.wav"
 text_file="${audio_file%.wav}.txt"
@@ -119,10 +120,10 @@ save_transcribed_audio() {
 
 transcribe_audio() {
 	whiptail --title "Vocalize" --infobox "Transcrevendo o audio, aguarde..." 12 80
-	whisper -f "$audio_file" \
+	main -f "$audio_file" \
 		-l pt \
 		-np \
-		-m ~/Packages/whisper.cpp/models/ggml-base.bin \
+		-m "$WHISPER_MODELS_DIR/ggml-base.bin" \
 		-otxt \
 		-of "${text_file%.txt}"
 	[ "$MINIMAL_MODE" = false ] && open_transcribed_audio

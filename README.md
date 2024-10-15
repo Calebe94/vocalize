@@ -2,6 +2,8 @@
 
 **Vocalize** is an interactive tool designed to facilitate audio transcription and text refinement through an AI-driven workflow. It supports recording audio, transcribing it into text, and enriching the transcription with more concise and coherent summaries using artificial intelligence.
 
+![](res/vocalize.png)
+
 ## Project Overview
 
 Vocalize is a shell script-based application that combines multiple tools such as **whisper**, **tgpt**, and **whiptail** to provide an efficient and user-friendly audio-to-text transcription process. This tool is particularly useful for users who need to transcribe audio files into text, refine the transcribed text with the help of AI, and manage the transcriptions seamlessly within the terminal.
@@ -55,14 +57,57 @@ sudo apt install -y arecord ffmpeg whiptail mpv xclip
 - **mpv**: A media player used to play back the recorded audio.
 - **xclip**: A clipboard manager that allows copying text to the system clipboard.
 
-### tgpt and whisper.cpp
+#### tgpt
 
-Comming soon...
+To install [tgpt](https://github.com/aandrew-me/tgpt) you can do it by running the following command:
+
+``` bash
+curl -sSL https://raw.githubusercontent.com/aandrew-me/tgpt/main/install | bash -s /usr/local/bin
+```
+
+#### whisper.cpp
+
+To install [whisper.cpp](https://github.com/ggerganov/whisper.cpp), you need to first clone the repo:
+
+```bash
+git clone https://github.com/ggerganov/whisper.cpp.git
+```
+
+Navigate into the directory:
+
+```
+cd whisper.cpp
+```
+
+Then, download one of the Whisper models converted in `ggml`. For example:
+
+```bash
+sh ./models/download-ggml-model.sh ggml-base.en
+```
+
+Now build the `main` example and transcribe an audio file like this:
+
+```bash
+# build the main example
+make
+```
+
+Now export the `whisper.cpp` path to your `$PATH` env var:
+
+``` bash
+export PATH=$PATH:/path/to/whisper.cpp
+```
+
+And then create a `WHISPER_MODELS_DIR` variable by exporting the models path:
+
+``` bash
+export WHISPER_MODELS_DIR=$WHISPER_MODELS_DIR:/path/to/whisper.cpp/models
+```
 
 ### Installing Vocalize
 
 1. Clone the repository or download the source files for **Vocalize**.
-   
+
 2. Navigate to the **Vocalize** directory and run the following command to install the tool:
 
 ```bash
@@ -94,4 +139,3 @@ This will remove the `vocalize` executable from the installation directory.
 ## License
 
 All software is covered by the [GNU General Public License v3.0](https://www.gnu.org/licenses/gpl-3.0.en.html).
-
